@@ -1,252 +1,672 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Smart Farm Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
       color-scheme: dark;
-      --bg: #08110e;
-      --surface: #12221c;
-      --surface-strong: #193330;
-      --text: #d4f2df;
-      --muted: #7da18f;
-      --accent: #8df6b9;
-      --danger: #f07f5a;
-      --success: #4ade80;
-      --radius: 20px;
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      --bg-card: #141d1a;
+      --bg-card-alt: #0f1714;
+      --border: #1f2b27;
+      --border-strong: #2a3a34;
+      --text: #e6efe9;
+      --muted: #5f7268;
+      --muted-2: #8ba098;
+      --accent: #46c98a;
+      --warn: #e0a94a;
+      --crit: #e5645b;
+      --cool: #5aa9e6;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
       min-height: 100vh;
-      background: radial-gradient(circle at top, rgba(92, 219, 163, 0.18), transparent 30%),
-        linear-gradient(180deg, #07100d 0%, #05130f 100%);
+      background: radial-gradient(1200px 700px at 80% -10%, #14201c 0%, #0b110f 55%);
+      background-attachment: fixed;
       color: var(--text);
-      display: grid;
-      place-items: center;
-      padding: 24px;
+      font-family: 'IBM Plex Sans', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
     }
 
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .35; transform: scale(.8); } }
+
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 8px; }
+
     .container {
-      width: min(100%, 980px);
-      display: grid;
-      gap: 22px;
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 22px 22px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
     }
 
     header {
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 16px;
+      padding: 15px 20px;
+      background: var(--bg-card-alt);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      flex-wrap: wrap;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+    }
+
+    .brand-mark {
+      width: 40px;
+      height: 40px;
+      border-radius: 11px;
+      background: linear-gradient(140deg, var(--accent), #2f8f63);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font: 700 17px 'Space Grotesk', sans-serif;
+      color: #0b110f;
+      flex: none;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font: 600 17px/1 'Space Grotesk', sans-serif;
+      letter-spacing: -.01em;
+    }
+
+    .brand .subtitle {
+      font: 500 10px/1 'IBM Plex Mono', monospace;
+      color: var(--muted);
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 13px;
+      border-radius: 10px;
+      background: var(--bg-card-alt);
+      border: 1px solid var(--border);
+      font: 600 11px/1 'IBM Plex Mono', monospace;
+      color: var(--muted-2);
+      letter-spacing: .06em;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex: none;
+    }
+
+    .dot.pulse { animation: pulse 2s ease-in-out infinite; }
+
+    .gear-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: #1a2420;
+      border: 1px solid var(--border-strong);
+      color: #c8d6cf;
+      font-size: 17px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .settings-wrap { position: relative; }
+
+    .settings-panel {
+      position: absolute;
+      top: 48px;
+      right: 0;
+      z-index: 20;
+      width: 270px;
+      background: var(--bg-card-alt);
+      border: 1px solid var(--border-strong);
+      border-radius: 14px;
+      padding: 18px;
+      box-shadow: 0 18px 44px rgba(0, 0, 0, .5);
+      display: none;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .settings-panel.open { display: flex; }
+
+    .settings-panel .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .settings-panel .close-btn {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font: 400 16px 'IBM Plex Sans';
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .field span {
+      color: var(--muted-2);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      font-size: .78rem;
+    }
+
+    .field input[type="number"] {
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border-strong);
+      background: #0f1714;
+      color: var(--text);
+      font: 600 15px 'IBM Plex Mono', monospace;
+      width: 100%;
+    }
+
+    .body-grid {
+      display: flex;
+      gap: 18px;
+      flex-wrap: wrap;
+      align-items: stretch;
+    }
+
+    .col-main {
+      flex: 3 1 600px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .row-flex {
+      display: flex;
       gap: 18px;
       flex-wrap: wrap;
     }
 
-    header h1 {
-      margin: 0;
-      font-size: clamp(2rem, 2.8vw, 3rem);
-      letter-spacing: -0.05em;
-    }
-
-    p.subtitle {
-      margin: 0;
-      color: var(--muted);
-      max-width: 720px;
-      line-height: 1.6;
-    }
-
     .card {
-      padding: 24px;
-      border-radius: var(--radius);
-      background: linear-gradient(180deg, rgba(24, 46, 38, 0.9), rgba(15, 37, 31, 0.95));
-      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.18);
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      display: grid;
-      gap: 20px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 20px;
     }
 
-    .metrics {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    .card-title {
+      font: 600 13px/1 'IBM Plex Sans';
+      color: var(--muted-2);
+    }
+
+    /* Gauge card */
+    .gauge-card {
+      flex: 2 1 320px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 22px;
+    }
+
+    .gauge-head {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 11px;
+      border-radius: 999px;
+      font: 600 10px/1 'IBM Plex Mono';
+      letter-spacing: .1em;
+      border: 1px solid;
+    }
+
+    .gauge-wrap { position: relative; width: 230px; height: 230px; }
+
+    .gauge-center {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+
+    .gauge-num {
+      font: 700 clamp(46px, 8vw, 72px)/1 'IBM Plex Mono', monospace;
+      letter-spacing: -.02em;
+    }
+
+    .gauge-num .unit { font-size: .36em; color: var(--muted); font-weight: 500; }
+
+    .gauge-sub {
+      font: 500 10px/1 'IBM Plex Mono', monospace;
+      color: var(--muted);
+      letter-spacing: .16em;
+    }
+
+    .gauge-scale {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      padding: 0 28px;
+      font: 500 10px 'IBM Plex Mono', monospace;
+      color: #455049;
+      letter-spacing: .1em;
+      margin-top: -6px;
+    }
+
+    /* vitals column */
+    .vitals-col {
+      flex: 1 1 240px;
+      display: flex;
+      flex-direction: column;
       gap: 18px;
     }
 
-    .metric {
-      padding: 20px;
-      border-radius: 18px;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      min-height: 120px;
-      display: grid;
-      gap: 14px;
+    .bar-track {
+      height: 8px;
+      border-radius: 999px;
+      background: var(--bg-card-alt);
+      overflow: hidden;
     }
 
-    .metric .label {
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.14em;
-      font-size: 0.78rem;
+    .bar-fill { height: 100%; border-radius: 999px; transition: width .3s; }
+
+    .value-lg {
+      font: 700 40px/1 'IBM Plex Mono', monospace;
+      letter-spacing: -.02em;
     }
 
-    .metric .value {
-      font-size: clamp(2rem, 4vw, 3rem);
-      font-weight: 700;
-      line-height: 1;
+    .value-lg .unit { font: 500 16px 'IBM Plex Mono', monospace; color: var(--muted); }
+
+    .target-controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
     }
 
-    .controls {
-      display: grid;
-      gap: 16px;
-    }
-
-    .button-row {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 16px;
-    }
-
-    button {
-      border: none;
+    .step-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: #1a2420;
+      border: 1px solid var(--border-strong);
+      color: #c8d6cf;
+      font: 400 22px/1 'IBM Plex Sans';
       cursor: pointer;
-      border-radius: 14px;
-      padding: 16px 20px;
-      font-size: 1rem;
-      font-weight: 600;
-      color: #08110e;
-      background: var(--accent);
-      transition: transform 0.16s ease, filter 0.16s ease;
-      min-height: 58px;
-      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18);
+      flex: none;
     }
 
-    button:hover {
-      transform: translateY(-1px);
+    .target-num {
+      font: 700 34px/1 'IBM Plex Mono', monospace;
+      color: var(--accent);
     }
 
-    button.off {
-      background: rgba(255, 255, 255, 0.08);
-      color: var(--text);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-    }
-
-    button.danger {
-      background: var(--danger);
-      color: white;
-    }
-
-    .status-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 16px;
-    }
-
-    .status-card {
-      padding: 16px;
-      border-radius: 16px;
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.07);
-      min-height: 100px;
-    }
-
-    .status-card h2 {
-      margin: 0 0 10px;
-      font-size: 0.92rem;
-      letter-spacing: 0.08em;
+    .target-foot {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font: 500 10px 'IBM Plex Mono', monospace;
       color: var(--muted);
+      letter-spacing: .04em;
     }
 
-    .status-card p {
-      margin: 0;
-      font-size: 1rem;
-      line-height: 1.5;
-      color: var(--text);
+    /* fans */
+    .fan-card { flex: 1 1 260px; display: flex; flex-direction: column; gap: 14px; }
+
+    .fan-head { display: flex; align-items: center; justify-content: space-between; }
+
+    .fan-title { font: 600 14px/1 'Space Grotesk', sans-serif; }
+
+    .fan-sub { font: 500 10px 'IBM Plex Mono', monospace; color: var(--muted); letter-spacing: .08em; }
+
+    .fan-status { display: flex; align-items: center; gap: 7px; font: 600 10px 'IBM Plex Mono'; color: var(--muted-2); letter-spacing: .08em; }
+
+    .fan-body { display: flex; align-items: center; gap: 16px; }
+
+    .fan-ring {
+      width: 118px;
+      height: 118px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex: none;
+      transition: all .3s;
+    }
+
+    .fan-blade { width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; }
+    .fan-blade.spinning { animation: spin .8s linear infinite; }
+    .fan-blade.spinning.reverse { animation-direction: reverse; }
+
+    .fan-rpm { font: 700 26px/1 'IBM Plex Mono', monospace; color: var(--text); }
+    .fan-rpm-unit { font: 500 10px/1 'IBM Plex Mono', monospace; color: var(--muted); letter-spacing: .06em; }
+
+    .seg-row { display: flex; gap: 6px; }
+
+    .seg-btn {
+      flex: 1;
+      padding: 8px 0;
+      border-radius: 8px;
+      border: 1px solid var(--border-strong);
+      background: transparent;
+      color: #7d9188;
+      font: 600 11px/1 'IBM Plex Mono', monospace;
+      letter-spacing: .1em;
+      cursor: pointer;
+      transition: all .15s;
+    }
+
+    /* chart */
+    .chart-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+    .chart-legend { display: flex; gap: 16px; font: 500 10px 'IBM Plex Mono'; letter-spacing: .06em; }
+    .chart-scale { display: flex; justify-content: space-between; font: 500 9px 'IBM Plex Mono'; color: #455049; letter-spacing: .1em; margin-top: 4px; }
+
+    /* alerts rail */
+    .rail {
+      flex: 1 1 300px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      min-height: 520px;
+    }
+
+    .rail-head { display: flex; align-items: center; justify-content: space-between; }
+
+    .clear-btn {
+      padding: 5px 10px;
+      border-radius: 8px;
+      background: transparent;
+      border: 1px solid var(--border-strong);
+      color: var(--muted);
+      font: 600 9px 'IBM Plex Mono', monospace;
+      letter-spacing: .1em;
+      cursor: pointer;
+    }
+
+    .alert-list { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; max-height: 560px; padding-right: 4px; }
+
+    .alert-item {
+      display: flex;
+      gap: 10px;
+      padding: 11px 12px;
+      border-radius: 11px;
+      background: var(--bg-card-alt);
+      border: 1px solid #1c2723;
+    }
+
+    .alert-dot { width: 7px; height: 7px; border-radius: 50%; margin-top: 5px; flex: none; }
+    .alert-msg { font: 500 12px/1.35 'IBM Plex Sans'; color: #d3ded7; }
+    .alert-time { font: 500 9px 'IBM Plex Mono', monospace; color: #556158; letter-spacing: .08em; }
+
+    .empty-state {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      color: #455049;
+    }
+
+    .empty-check {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 1.5px dashed var(--border-strong);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
     }
 
     .note {
       color: var(--muted);
-      font-size: 0.95rem;
+      font-size: .9rem;
       line-height: 1.7;
     }
 
-    .note code {
-      display: inline-block;
-      padding: 3px 6px;
-      background: rgba(255, 255, 255, 0.06);
-      border-radius: 8px;
-      color: var(--accent);
-    }
-
     @media (max-width: 640px) {
-      .card { padding: 18px; }
-      .metric .value { font-size: 2.1rem; }
+      .card { padding: 16px; }
+      .gauge-num { font-size: 44px; }
     }
   </style>
 </head>
 <body>
   <div class="container">
+
     <header>
-      <div>
-        <h1>Smart Farm Dashboard</h1>
-        <p class="subtitle">Monitor temperature, humidity, and fan state. Control the fans from the browser and store the farm state in Firebase.</p>
+      <div class="brand">
+        <div class="brand-mark">SF</div>
+        <div>
+          <h1>Smart Farm</h1>
+          <div class="subtitle">Climate Control</div>
+        </div>
       </div>
-      <div class="status-card" style="align-self:center;min-width:220px;">
-        <h2>Backend</h2>
-        <p id="firebaseStatus">Connecting to Firebase…</p>
+      <div class="header-right">
+        <div class="pill">
+          <span id="statusDot" class="dot pulse" style="background:#556158;"></span>
+          <span id="statusLabel">CONNECTING…</span>
+        </div>
+        <div class="pill">
+          <span style="color:var(--muted);">DHT11</span>
+          <span id="clock">--:--:--</span>
+        </div>
+        <div class="settings-wrap">
+          <button id="gearBtn" type="button" class="gear-btn" title="Threshold settings">&#9881;</button>
+          <div id="settingsPanel" class="settings-panel">
+            <div class="row">
+              <span style="font:600 12px 'IBM Plex Sans';color:#c8d6cf;">Temperature Threshold</span>
+              <button id="closeSettings" type="button" class="close-btn">&times;</button>
+            </div>
+            <label class="field">
+              <span>Normal Temp (&deg;C)</span>
+              <input id="tempThresholdInput" type="number" step="0.5" value="28" />
+            </label>
+            <button id="saveThresholdButton" type="button" class="step-btn" style="width:100%;height:40px;border-radius:10px;font:600 11px 'IBM Plex Mono';letter-spacing:.08em;">SAVE</button>
+          </div>
+        </div>
       </div>
     </header>
 
-    <section class="card metrics">
-      <div class="metric">
-        <span class="label">Temperature</span>
-        <span id="temperature" class="value">-- °C</span>
-      </div>
-      <div class="metric">
-        <span class="label">Humidity</span>
-        <span id="humidity" class="value">-- %</span>
-      </div>
-      <div class="metric">
-        <span class="label">Fan 1</span>
-        <span id="fan1" class="value">OFF</span>
-      </div>
-      <div class="metric">
-        <span class="label">Fan 2</span>
-        <span id="fan2" class="value">OFF</span>
-      </div>
-    </section>
+    <div class="body-grid">
+      <div class="col-main">
 
-    <section class="card controls">
-      <div>
-        <h2 style="margin-top:0;">Manual Controls</h2>
-        <p>Use these buttons to toggle fans and save the state to Firebase. When you deploy to Vercel, the same UI can read/write state from Cloud Firestore.</p>
-      </div>
-      <div class="button-row">
-        <button id="fan1Button" type="button">Toggle Fan 1</button>
-        <button id="fan2Button" type="button">Toggle Fan 2</button>
-        <button id="resetButton" class="off" type="button">Reset to Auto</button>
-      </div>
-    </section>
+        <div class="row-flex">
+          <!-- GAUGE -->
+          <div class="card gauge-card">
+            <div class="gauge-head">
+              <div class="card-title">Environment Temperature</div>
+              <div id="statusBadge" class="badge">OPTIMAL</div>
+            </div>
+            <div class="gauge-wrap">
+              <svg viewBox="0 0 220 220" width="230" height="230">
+                <circle cx="110" cy="110" r="80" fill="none" stroke="#223029" stroke-width="14" stroke-linecap="round" stroke-dasharray="376.99 502.65" transform="rotate(135 110 110)"></circle>
+                <circle id="gaugeArc" cx="110" cy="110" r="80" fill="none" stroke="#46c98a" stroke-width="14" stroke-linecap="round" stroke-dasharray="0 502.65" transform="rotate(135 110 110)"></circle>
+                <line id="gaugeNeedle" x1="110" y1="30" x2="110" y2="16" stroke="#eef4f0" stroke-width="3" stroke-linecap="round"></line>
+              </svg>
+              <div class="gauge-center">
+                <div class="gauge-num"><span id="gaugeTemp">--</span><span class="unit">&deg;C</span></div>
+                <div class="gauge-sub">TARGET <span id="gaugeTarget">--</span>&deg;C</div>
+              </div>
+            </div>
+            <div class="gauge-scale"><span>0&deg;</span><span>50&deg;</span></div>
+          </div>
 
-    <section class="card status-grid">
-      <div class="status-card">
-        <h2>Realtime Status</h2>
-        <p id="realtimeStatus">Waiting for Firebase document...</p>
-      </div>
-      <div class="status-card">
-        <h2>Deployment Notes</h2>
-        <p>This page is static and ready for Vercel. Replace the Firebase config object with your project values, then publish the `html` folder.</p>
-      </div>
-    </section>
+          <!-- VITALS -->
+          <div class="vitals-col">
+            <div class="card">
+              <div class="card-title" style="margin-bottom:14px;">Humidity</div>
+              <div style="display:flex;align-items:baseline;gap:4px;margin-bottom:14px;">
+                <span id="humidityValue" class="value-lg" style="color:var(--cool);">--</span>
+                <span class="unit">%RH</span>
+              </div>
+              <div class="bar-track"><div id="humidityBar" class="bar-fill" style="width:0%;background:linear-gradient(90deg,#5aa9e6,#7cc6f0);"></div></div>
+            </div>
 
-    <section class="card note">
-      <p><strong>Firebase setup:</strong> create a Web App in Firebase, then paste the config values in the <code>firebaseConfig</code> object below. For development, set Firestore security to allow reads/writes while you build the dashboard.</p>
-      <p>When your Arduino is connected to a gateway (ESP32, NodeMCU, or a local server), use the Firestore document <code>smart-farm/current</code> to keep sensor values and fan state in sync.</p>
-    </section>
+            <div class="card" style="flex:1;display:flex;flex-direction:column;gap:12px;">
+              <div class="card-title">Target Threshold</div>
+              <div class="target-controls">
+                <button id="decTarget" type="button" class="step-btn">&minus;</button>
+                <div style="display:flex;align-items:baseline;gap:2px;">
+                  <span id="targetValue" class="target-num">28</span><span class="unit">&deg;C</span>
+                </div>
+                <button id="incTarget" type="button" class="step-btn">+</button>
+              </div>
+              <div class="bar-track"><div id="targetBar" class="bar-fill" style="width:56%;background:linear-gradient(90deg,#46c98a,#5aa9e6);"></div></div>
+              <div class="target-foot">
+                <span>&plusmn;1.5&deg;C hysteresis</span>
+                <span id="coolingLabel">&#9675; IDLE</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- FANS -->
+        <div class="row-flex">
+          <div class="card fan-card">
+            <div class="fan-head">
+              <div>
+                <div class="fan-title">Fan 1 — Intake</div>
+                <div class="fan-sub">PUSHING AIR IN &rarr;</div>
+              </div>
+              <div class="fan-status"><span id="f1Dot" class="dot"></span><span id="f1Label">OFF</span></div>
+            </div>
+            <div class="fan-body">
+              <div id="f1Ring" class="fan-ring">
+                <div id="f1Blade" class="fan-blade">
+                  <svg viewBox="0 0 80 80" width="64" height="64" fill="#3f4d47">
+                    <ellipse cx="40" cy="24" rx="7.5" ry="16" transform="rotate(0 40 40)"></ellipse>
+                    <ellipse cx="40" cy="24" rx="7.5" ry="16" transform="rotate(72 40 40)"></ellipse>
+                    <ellipse cx="40" cy="24" rx="7.5" ry="16" transform="rotate(144 40 40)"></ellipse>
+                    <ellipse cx="40" cy="24" rx="7.5" ry="16" transform="rotate(216 40 40)"></ellipse>
+                    <ellipse cx="40" cy="24" rx="7.5" ry="16" transform="rotate(288 40 40)"></ellipse>
+                    <circle cx="40" cy="40" r="7" fill="#0b110f"></circle>
+                  </svg>
+                </div>
+              </div>
+              <div>
+                <div id="f1Rpm" class="fan-rpm">0</div>
+                <div class="fan-rpm-unit">RPM</div>
+              </div>
+            </div>
+            <div class="seg-row" id="fan1Segs"></div>
+          </div>
+
+          <div class="card fan-card">
+            <div class="fan-head">
+              <div>
+                <div class="fan-title">Fan 2 — Exhaust</div>
+                <div class="fan-sub">&larr; SUCKING AIR OUT</div>
+              </div>
+              <div class="fan-status"><span id="f2Dot" class="dot"></span><span id="f2Label">OFF</span></div>
+            </div>
+            <div class="fan-body">
+              <div id="f2Ring" class="fan-ring">
+                <div id="f2Blade" class="fan-blade">
+                  <svg viewBox="0 0 80 80" width="64" height="64" fill="#3f4d47">
+                    <ellipse cx="40" cy="24" rx="7.5" ry="16" transform="rotate(0 40 40)"></ellipse>
+                    <ellipse cx="40" cy="24" rx="7.5" ry="16" transform="rotate(72 40 40)"></ellipse>
+                    <ellipse cx="40" cy="24" rx="7.5" ry="16" transform="rotate(144 40 40)"></ellipse>
+                    <ellipse cx="40" cy="24" rx="7.5" ry="16" transform="rotate(216 40 40)"></ellipse>
+                    <ellipse cx="40" cy="24" rx="7.5" ry="16" transform="rotate(288 40 40)"></ellipse>
+                    <circle cx="40" cy="40" r="7" fill="#0b110f"></circle>
+                  </svg>
+                </div>
+              </div>
+              <div>
+                <div id="f2Rpm" class="fan-rpm">0</div>
+                <div class="fan-rpm-unit">RPM</div>
+              </div>
+            </div>
+            <div class="seg-row" id="fan2Segs"></div>
+          </div>
+        </div>
+
+        <!-- CHART -->
+        <div class="card">
+          <div class="chart-head">
+            <div class="card-title">Temperature — recent readings</div>
+            <div class="chart-legend">
+              <span style="color:var(--accent);">&#9679; reading</span>
+              <span style="color:var(--warn);">&mdash; &mdash; target</span>
+            </div>
+          </div>
+          <svg id="chartSvg" viewBox="0 0 640 200" width="100%" height="200" preserveAspectRatio="none" style="overflow:visible;">
+            <defs>
+              <linearGradient id="tempFill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#46c98a" stop-opacity="0.28"></stop>
+                <stop offset="100%" stop-color="#46c98a" stop-opacity="0"></stop>
+              </linearGradient>
+            </defs>
+            <line x1="8" y1="47.7" x2="632" y2="47.7" stroke="#1c2723" stroke-width="1"></line>
+            <line x1="8" y1="99.4" x2="632" y2="99.4" stroke="#1c2723" stroke-width="1"></line>
+            <line x1="8" y1="151.1" x2="632" y2="151.1" stroke="#1c2723" stroke-width="1"></line>
+            <path id="chartArea" d="" fill="url(#tempFill)"></path>
+            <polyline id="chartLine" points="" fill="none" stroke="#46c98a" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"></polyline>
+            <line id="chartTargetLine" x1="8" x2="632" stroke="#e0a94a" stroke-width="1.5" stroke-dasharray="5 5"></line>
+            <circle id="chartLastDot" r="4" fill="#46c98a" stroke="#0b110f" stroke-width="2"></circle>
+          </svg>
+          <div class="chart-scale"><span>50&deg;C</span><span>25&deg;C</span><span>0&deg;C</span></div>
+        </div>
+
+        <div class="card note">
+          <p style="margin:0;"><strong>Firebase setup:</strong> create a Web App in Firebase, then paste the config values in the <code>firebaseConfig</code> object below. When your ESP32 pushes to Firestore document <code>smart-farm/current</code>, this dashboard stays in sync automatically.</p>
+        </div>
+
+      </div>
+
+      <!-- ALERTS RAIL -->
+      <div class="card rail">
+        <div class="rail-head">
+          <div class="card-title">Activity Log</div>
+          <button id="clearAlerts" type="button" class="clear-btn">CLEAR</button>
+        </div>
+        <div id="alertList" class="alert-list"></div>
+        <div id="emptyState" class="empty-state" style="display:none;">
+          <div class="empty-check">&check;</div>
+          <div style="font:500 12px 'IBM Plex Mono';letter-spacing:.06em;">All clear</div>
+        </div>
+      </div>
+
+    </div>
   </div>
 
   <script type="module">
@@ -267,85 +687,288 @@
     const db = getFirestore(app);
     const farmRef = doc(db, 'smart-farm', 'current');
 
-    const elements = {
-      temperature: document.getElementById('temperature'),
-      humidity: document.getElementById('humidity'),
-      fan1: document.getElementById('fan1'),
-      fan2: document.getElementById('fan2'),
-      firebaseStatus: document.getElementById('firebaseStatus'),
-      realtimeStatus: document.getElementById('realtimeStatus'),
-      fan1Button: document.getElementById('fan1Button'),
-      fan2Button: document.getElementById('fan2Button'),
-      resetButton: document.getElementById('resetButton')
-    };
+    const DEFAULT_TEMP_THRESHOLD = 28;
+    const HYSTERESIS = 1.5;
+    const GAUGE_MIN = 0, GAUGE_MAX = 50;
+    const TRACK_CIRC = 502.65, TRACK_ARC = 376.99;
+
+    const palette = { ok: '#46c98a', high: '#e0a94a', critical: '#e5645b', cool: '#5aa9e6' };
+    const statusText = { ok: 'OPTIMAL', high: 'ABOVE TARGET', critical: 'CRITICAL', cool: 'COOL' };
 
     const state = {
       temperature: null,
       humidity: null,
       fan1: false,
       fan2: false,
-      autoMode: true
+      autoMode: true,
+      tempThreshold: DEFAULT_TEMP_THRESHOLD,
+      connected: false,
+      history: [],
+      alerts: [],
+      prevStatus: null,
     };
 
-    function render() {
-      elements.temperature.textContent = state.temperature === null ? '-- °C' : `${state.temperature.toFixed(1)} °C`;
-      elements.humidity.textContent = state.humidity === null ? '-- %' : `${state.humidity.toFixed(0)} %`;
-      elements.fan1.textContent = state.fan1 ? 'ON' : 'OFF';
-      elements.fan2.textContent = state.fan2 ? 'ON' : 'OFF';
-      elements.fan1Button.textContent = state.fan1 ? 'Turn Fan 1 Off' : 'Turn Fan 1 On';
-      elements.fan2Button.textContent = state.fan2 ? 'Turn Fan 2 Off' : 'Turn Fan 2 On';
-      elements.realtimeStatus.textContent = state.autoMode ? 'Auto mode is active' : 'Manual fan settings are active';
-    }
+    const el = {
+      statusDot: document.getElementById('statusDot'),
+      statusLabel: document.getElementById('statusLabel'),
+      clock: document.getElementById('clock'),
+      gearBtn: document.getElementById('gearBtn'),
+      settingsPanel: document.getElementById('settingsPanel'),
+      closeSettings: document.getElementById('closeSettings'),
+      tempThresholdInput: document.getElementById('tempThresholdInput'),
+      saveThresholdButton: document.getElementById('saveThresholdButton'),
+      statusBadge: document.getElementById('statusBadge'),
+      gaugeArc: document.getElementById('gaugeArc'),
+      gaugeNeedle: document.getElementById('gaugeNeedle'),
+      gaugeTemp: document.getElementById('gaugeTemp'),
+      gaugeTarget: document.getElementById('gaugeTarget'),
+      humidityValue: document.getElementById('humidityValue'),
+      humidityBar: document.getElementById('humidityBar'),
+      targetValue: document.getElementById('targetValue'),
+      targetBar: document.getElementById('targetBar'),
+      coolingLabel: document.getElementById('coolingLabel'),
+      decTarget: document.getElementById('decTarget'),
+      incTarget: document.getElementById('incTarget'),
+      f1Dot: document.getElementById('f1Dot'),
+      f1Label: document.getElementById('f1Label'),
+      f1Ring: document.getElementById('f1Ring'),
+      f1Blade: document.getElementById('f1Blade'),
+      f1Rpm: document.getElementById('f1Rpm'),
+      fan1Segs: document.getElementById('fan1Segs'),
+      f2Dot: document.getElementById('f2Dot'),
+      f2Label: document.getElementById('f2Label'),
+      f2Ring: document.getElementById('f2Ring'),
+      f2Blade: document.getElementById('f2Blade'),
+      f2Rpm: document.getElementById('f2Rpm'),
+      fan2Segs: document.getElementById('fan2Segs'),
+      chartArea: document.getElementById('chartArea'),
+      chartLine: document.getElementById('chartLine'),
+      chartTargetLine: document.getElementById('chartTargetLine'),
+      chartLastDot: document.getElementById('chartLastDot'),
+      alertList: document.getElementById('alertList'),
+      emptyState: document.getElementById('emptyState'),
+      clearAlerts: document.getElementById('clearAlerts'),
+    };
+
+    let isEditingThreshold = false;
+    el.tempThresholdInput.addEventListener('focus', () => { isEditingThreshold = true; });
+    el.tempThresholdInput.addEventListener('blur', () => { isEditingThreshold = false; });
+
+    el.gearBtn.addEventListener('click', () => el.settingsPanel.classList.toggle('open'));
+    el.closeSettings.addEventListener('click', () => el.settingsPanel.classList.remove('open'));
 
     async function writeState(update) {
       try {
         await setDoc(farmRef, update, { merge: true });
-        elements.firebaseStatus.textContent = 'Saved state to Firebase';
+        state.connected = true;
       } catch (error) {
-        elements.firebaseStatus.textContent = `Firebase error: ${error.message}`;
+        state.connected = false;
         console.error(error);
       }
+      render();
     }
 
-    elements.fan1Button.addEventListener('click', async () => {
-      state.fan1 = !state.fan1;
-      state.autoMode = false;
-      await writeState({ fan1: state.fan1, autoMode: state.autoMode });
+    el.saveThresholdButton.addEventListener('click', async () => {
+      const value = parseFloat(el.tempThresholdInput.value);
+      if (Number.isNaN(value)) return;
+      state.tempThreshold = value;
+      el.settingsPanel.classList.remove('open');
+      await writeState({ tempThreshold: value });
+    });
+
+    el.decTarget.addEventListener('click', async () => {
+      state.tempThreshold = Math.max(0, state.tempThreshold - 1);
+      await writeState({ tempThreshold: state.tempThreshold });
+    });
+    el.incTarget.addEventListener('click', async () => {
+      state.tempThreshold = Math.min(GAUGE_MAX, state.tempThreshold + 1);
+      await writeState({ tempThreshold: state.tempThreshold });
+    });
+
+    function setFan(key, mode) {
+      return async () => {
+        if (mode === 'auto') {
+          state.autoMode = true;
+          await writeState({ autoMode: true });
+          return;
+        }
+        state[key] = mode === 'on';
+        state.autoMode = false;
+        await writeState({ [key]: state[key], autoMode: false });
+      };
+    }
+
+    function buildSegs(container, key) {
+      container.innerHTML = '';
+      ['auto', 'on', 'off'].forEach((mode) => {
+        const btn = document.createElement('button');
+        btn.className = 'seg-btn';
+        btn.textContent = mode.toUpperCase();
+        btn.dataset.mode = mode;
+        btn.addEventListener('click', setFan(key, mode));
+        container.appendChild(btn);
+      });
+    }
+    buildSegs(el.fan1Segs, 'fan1');
+    buildSegs(el.fan2Segs, 'fan2');
+
+    function highlightSegs(container, mode, activeColor) {
+      Array.from(container.children).forEach((btn) => {
+        const active = btn.dataset.mode === mode;
+        btn.style.borderColor = active ? activeColor : '#26332e';
+        btn.style.background = active ? activeColor : 'transparent';
+        btn.style.color = active ? '#0b110f' : '#7d9188';
+      });
+    }
+
+    el.clearAlerts.addEventListener('click', () => {
+      state.alerts = [];
       render();
     });
 
-    elements.fan2Button.addEventListener('click', async () => {
-      state.fan2 = !state.fan2;
-      state.autoMode = false;
-      await writeState({ fan2: state.fan2, autoMode: state.autoMode });
-      render();
-    });
+    function nowLabel() {
+      return new Date().toLocaleTimeString('en-GB', { hour12: false });
+    }
 
-    elements.resetButton.addEventListener('click', async () => {
-      state.autoMode = true;
-      await writeState({ autoMode: true });
-      render();
-    });
+    function pushAlert(level, msg) {
+      state.alerts = [{ id: Math.random().toString(36).slice(2), time: nowLabel(), level, msg }, ...state.alerts].slice(0, 40);
+    }
+
+    function updateHistoryAndAlerts() {
+      if (state.temperature === null) return;
+      state.history = state.history.concat([{ temp: state.temperature }]).slice(-60);
+
+      const status = state.temperature > state.tempThreshold + 3 ? 'critical'
+        : (state.temperature > state.tempThreshold ? 'high'
+        : (state.temperature < state.tempThreshold - HYSTERESIS - 2 ? 'cool' : 'ok'));
+
+      if (state.prevStatus !== null && status !== state.prevStatus) {
+        if (status === 'high') pushAlert('warn', `Temp ${state.temperature.toFixed(1)}°C above ${state.tempThreshold}°C target — fans engaged`);
+        else if (status === 'critical') pushAlert('crit', `Critical: ${state.temperature.toFixed(1)}°C, 3°C+ over target`);
+        else if (status === 'ok') pushAlert('ok', `Temperature back in range at ${state.temperature.toFixed(1)}°C`);
+      }
+      state.prevStatus = status;
+    }
+
+    function render() {
+      // header
+      el.clock.textContent = nowLabel();
+      el.statusDot.style.background = state.connected ? 'var(--accent)' : '#e5645b';
+      el.statusLabel.textContent = state.connected ? 'FIRESTORE · ONLINE' : 'FIRESTORE · OFFLINE';
+
+      if (!isEditingThreshold) el.tempThresholdInput.value = state.tempThreshold;
+
+      const temp = state.temperature;
+      const target = state.tempThreshold;
+      const status = temp === null ? 'ok' : (temp > target + 3 ? 'critical' : (temp > target ? 'high' : (temp < target - HYSTERESIS - 2 ? 'cool' : 'ok')));
+      const color = palette[status];
+
+      el.gaugeTemp.textContent = temp === null ? '--' : temp.toFixed(1);
+      el.gaugeTarget.textContent = target;
+      el.statusBadge.textContent = temp === null ? 'WAITING' : statusText[status];
+      el.statusBadge.style.color = color;
+      el.statusBadge.style.borderColor = color + '55';
+      el.statusBadge.style.background = color + '1f';
+
+      const fr = Math.min(1, Math.max(0, ((temp ?? 0) - GAUGE_MIN) / (GAUGE_MAX - GAUGE_MIN)));
+      el.gaugeArc.setAttribute('stroke-dasharray', `${(TRACK_ARC * fr).toFixed(1)} ${TRACK_CIRC}`);
+      el.gaugeArc.setAttribute('stroke', color);
+
+      const ft = Math.min(1, Math.max(0, (target - GAUGE_MIN) / (GAUGE_MAX - GAUGE_MIN)));
+      const ang = (135 + ft * 270) * Math.PI / 180;
+      const tk = (r) => [110 + r * Math.cos(ang), 110 + r * Math.sin(ang)];
+      const [tx1, ty1] = tk(66), [tx2, ty2] = tk(94);
+      el.gaugeNeedle.setAttribute('x1', tx1.toFixed(1));
+      el.gaugeNeedle.setAttribute('y1', ty1.toFixed(1));
+      el.gaugeNeedle.setAttribute('x2', tx2.toFixed(1));
+      el.gaugeNeedle.setAttribute('y2', ty2.toFixed(1));
+
+      el.humidityValue.textContent = state.humidity === null ? '--' : Math.round(state.humidity);
+      el.humidityBar.style.width = `${state.humidity === null ? 0 : Math.round(state.humidity)}%`;
+
+      el.targetValue.textContent = target;
+      el.targetBar.style.width = `${Math.min(100, (target / GAUGE_MAX) * 100)}%`;
+
+      const cooling = state.fan1 || state.fan2;
+      el.coolingLabel.textContent = cooling ? '● COOLING ACTIVE' : '○ IDLE';
+      el.coolingLabel.style.color = cooling ? 'var(--cool)' : '#556158';
+
+      // fans
+      const fanMode = state.autoMode ? 'auto' : 'manual';
+      [
+        { on: state.fan1, dot: el.f1Dot, label: el.f1Label, ring: el.f1Ring, blade: el.f1Blade, rpm: el.f1Rpm, col: '#5aa9e6', reverse: false, segs: el.fan1Segs },
+        { on: state.fan2, dot: el.f2Dot, label: el.f2Label, ring: el.f2Ring, blade: el.f2Blade, rpm: el.f2Rpm, col: '#e0a94a', reverse: true, segs: el.fan2Segs },
+      ].forEach((f) => {
+        f.dot.style.background = f.on ? f.col : '#3a4a44';
+        f.dot.style.boxShadow = f.on ? `0 0 8px ${f.col}` : 'none';
+        f.label.textContent = f.on ? 'RUNNING' : 'OFF';
+        f.ring.style.background = `radial-gradient(circle, ${f.on ? f.col + '26' : '#1a2420'} 0%, #131c19 72%)`;
+        f.ring.style.border = `1px solid ${f.on ? f.col + '66' : '#26332e'}`;
+        f.blade.classList.toggle('spinning', f.on);
+        f.blade.classList.toggle('reverse', f.reverse);
+        f.blade.querySelector('svg').setAttribute('fill', f.on ? f.col : '#3f4d47');
+        f.rpm.textContent = f.on ? (2280 + Math.round(Math.random() * 150)) : 0;
+        const activeMode = state.autoMode ? 'auto' : (f.on ? 'on' : 'off');
+        highlightSegs(f.segs, activeMode, f.on ? f.col : '#46c98a');
+      });
+
+      // chart
+      const W = 640, H = 200, pT = 16, pB = 26, L = 8, R = 8, bY = H - pB;
+      const yOf = (t) => pT + (1 - (Math.min(GAUGE_MAX, Math.max(GAUGE_MIN, t)) - GAUGE_MIN) / (GAUGE_MAX - GAUGE_MIN)) * (H - pT - pB);
+      const hist = state.history.length ? state.history : (temp !== null ? [{ temp }] : []);
+      if (hist.length) {
+        const n = hist.length;
+        const xOf = (i) => L + (n <= 1 ? 0 : i * ((W - L - R) / (n - 1)));
+        const pts = hist.map((p, i) => `${xOf(i).toFixed(1)},${yOf(p.temp).toFixed(1)}`).join(' ');
+        el.chartLine.setAttribute('points', pts);
+        el.chartArea.setAttribute('d', `M ${L},${bY} L ${hist.map((p, i) => `${xOf(i).toFixed(1)},${yOf(p.temp).toFixed(1)}`).join(' L ')} L ${(W - R)},${bY} Z`);
+        el.chartLastDot.setAttribute('cx', xOf(n - 1).toFixed(1));
+        el.chartLastDot.setAttribute('cy', yOf(hist[n - 1].temp).toFixed(1));
+        el.chartLastDot.style.display = '';
+      } else {
+        el.chartLine.setAttribute('points', '');
+        el.chartArea.setAttribute('d', '');
+        el.chartLastDot.style.display = 'none';
+      }
+      const targetY = yOf(target).toFixed(1);
+      el.chartTargetLine.setAttribute('y1', targetY);
+      el.chartTargetLine.setAttribute('y2', targetY);
+
+      // alerts
+      el.alertList.style.display = state.alerts.length ? '' : 'none';
+      el.emptyState.style.display = state.alerts.length ? 'none' : '';
+      el.alertList.innerHTML = '';
+      const dotColor = { warn: palette.high, crit: palette.critical, ok: palette.ok };
+      state.alerts.forEach((a) => {
+        const c = dotColor[a.level];
+        const item = document.createElement('div');
+        item.className = 'alert-item';
+        item.innerHTML = `<span class="alert-dot" style="background:${c};box-shadow:0 0 6px ${c}99;"></span>
+          <div><div class="alert-msg">${a.msg}</div><div class="alert-time">${a.time}</div></div>`;
+        el.alertList.appendChild(item);
+      });
+    }
 
     onSnapshot(farmRef, (snapshot) => {
-      if (!snapshot.exists()) {
-        elements.firebaseStatus.textContent = 'Firebase document not found yet. It will be created automatically when you press a button.';
-        return;
+      state.connected = true;
+      if (snapshot.exists()) {
+        const data = snapshot.data();
+        state.temperature = typeof data.temperature === 'number' ? data.temperature : state.temperature;
+        state.humidity = typeof data.humidity === 'number' ? data.humidity : state.humidity;
+        state.fan1 = typeof data.fan1 === 'boolean' ? data.fan1 : state.fan1;
+        state.fan2 = typeof data.fan2 === 'boolean' ? data.fan2 : state.fan2;
+        state.autoMode = data.autoMode !== false;
+        state.tempThreshold = typeof data.tempThreshold === 'number' ? data.tempThreshold : state.tempThreshold;
+        updateHistoryAndAlerts();
       }
-
-      const data = snapshot.data();
-      state.temperature = typeof data.temperature === 'number' ? data.temperature : state.temperature;
-      state.humidity = typeof data.humidity === 'number' ? data.humidity : state.humidity;
-      state.fan1 = typeof data.fan1 === 'boolean' ? data.fan1 : state.fan1;
-      state.fan2 = typeof data.fan2 === 'boolean' ? data.fan2 : state.fan2;
-      state.autoMode = data.autoMode !== false;
-      elements.firebaseStatus.textContent = 'Connected to Firebase';
       render();
     }, (error) => {
-      elements.firebaseStatus.textContent = `Realtime error: ${error.message}`;
+      state.connected = false;
       console.error(error);
+      render();
     });
 
+    setInterval(render, 1000);
     render();
   </script>
 </body>
