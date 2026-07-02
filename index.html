@@ -1,0 +1,352 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Farm Dashboard</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #08110e;
+      --surface: #12221c;
+      --surface-strong: #193330;
+      --text: #d4f2df;
+      --muted: #7da18f;
+      --accent: #8df6b9;
+      --danger: #f07f5a;
+      --success: #4ade80;
+      --radius: 20px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(circle at top, rgba(92, 219, 163, 0.18), transparent 30%),
+        linear-gradient(180deg, #07100d 0%, #05130f 100%);
+      color: var(--text);
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .container {
+      width: min(100%, 980px);
+      display: grid;
+      gap: 22px;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: clamp(2rem, 2.8vw, 3rem);
+      letter-spacing: -0.05em;
+    }
+
+    p.subtitle {
+      margin: 0;
+      color: var(--muted);
+      max-width: 720px;
+      line-height: 1.6;
+    }
+
+    .card {
+      padding: 24px;
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(24, 46, 38, 0.9), rgba(15, 37, 31, 0.95));
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.18);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      display: grid;
+      gap: 20px;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 18px;
+    }
+
+    .metric {
+      padding: 20px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      min-height: 120px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .metric .label {
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-size: 0.78rem;
+    }
+
+    .metric .value {
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .controls {
+      display: grid;
+      gap: 16px;
+    }
+
+    .button-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 16px;
+    }
+
+    button {
+      border: none;
+      cursor: pointer;
+      border-radius: 14px;
+      padding: 16px 20px;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #08110e;
+      background: var(--accent);
+      transition: transform 0.16s ease, filter 0.16s ease;
+      min-height: 58px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18);
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    button.off {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    button.danger {
+      background: var(--danger);
+      color: white;
+    }
+
+    .status-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+    }
+
+    .status-card {
+      padding: 16px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      min-height: 100px;
+    }
+
+    .status-card h2 {
+      margin: 0 0 10px;
+      font-size: 0.92rem;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+
+    .status-card p {
+      margin: 0;
+      font-size: 1rem;
+      line-height: 1.5;
+      color: var(--text);
+    }
+
+    .note {
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.7;
+    }
+
+    .note code {
+      display: inline-block;
+      padding: 3px 6px;
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 8px;
+      color: var(--accent);
+    }
+
+    @media (max-width: 640px) {
+      .card { padding: 18px; }
+      .metric .value { font-size: 2.1rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div>
+        <h1>Smart Farm Dashboard</h1>
+        <p class="subtitle">Monitor temperature, humidity, and fan state. Control the fans from the browser and store the farm state in Firebase.</p>
+      </div>
+      <div class="status-card" style="align-self:center;min-width:220px;">
+        <h2>Backend</h2>
+        <p id="firebaseStatus">Connecting to Firebase…</p>
+      </div>
+    </header>
+
+    <section class="card metrics">
+      <div class="metric">
+        <span class="label">Temperature</span>
+        <span id="temperature" class="value">-- °C</span>
+      </div>
+      <div class="metric">
+        <span class="label">Humidity</span>
+        <span id="humidity" class="value">-- %</span>
+      </div>
+      <div class="metric">
+        <span class="label">Fan 1</span>
+        <span id="fan1" class="value">OFF</span>
+      </div>
+      <div class="metric">
+        <span class="label">Fan 2</span>
+        <span id="fan2" class="value">OFF</span>
+      </div>
+    </section>
+
+    <section class="card controls">
+      <div>
+        <h2 style="margin-top:0;">Manual Controls</h2>
+        <p>Use these buttons to toggle fans and save the state to Firebase. When you deploy to Vercel, the same UI can read/write state from Cloud Firestore.</p>
+      </div>
+      <div class="button-row">
+        <button id="fan1Button" type="button">Toggle Fan 1</button>
+        <button id="fan2Button" type="button">Toggle Fan 2</button>
+        <button id="resetButton" class="off" type="button">Reset to Auto</button>
+      </div>
+    </section>
+
+    <section class="card status-grid">
+      <div class="status-card">
+        <h2>Realtime Status</h2>
+        <p id="realtimeStatus">Waiting for Firebase document...</p>
+      </div>
+      <div class="status-card">
+        <h2>Deployment Notes</h2>
+        <p>This page is static and ready for Vercel. Replace the Firebase config object with your project values, then publish the `html` folder.</p>
+      </div>
+    </section>
+
+    <section class="card note">
+      <p><strong>Firebase setup:</strong> create a Web App in Firebase, then paste the config values in the <code>firebaseConfig</code> object below. For development, set Firestore security to allow reads/writes while you build the dashboard.</p>
+      <p>When your Arduino is connected to a gateway (ESP32, NodeMCU, or a local server), use the Firestore document <code>smart-farm/current</code> to keep sensor values and fan state in sync.</p>
+    </section>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
+    import { getFirestore, doc, onSnapshot, setDoc } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyD1PlP0MZ_a4BdD8pHFuD1ThEH6suuoClg",
+      authDomain: "smartfarm2-eaac6.firebaseapp.com",
+      projectId: "smartfarm2-eaac6",
+      storageBucket: "smartfarm2-eaac6.firebasestorage.app",
+      messagingSenderId: "755839822569",
+      appId: "1:755839822569:web:fdb9811de6f5faf2d89e78",
+      measurementId: "G-WCMHB5YDLB"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const farmRef = doc(db, 'smart-farm', 'current');
+
+    const elements = {
+      temperature: document.getElementById('temperature'),
+      humidity: document.getElementById('humidity'),
+      fan1: document.getElementById('fan1'),
+      fan2: document.getElementById('fan2'),
+      firebaseStatus: document.getElementById('firebaseStatus'),
+      realtimeStatus: document.getElementById('realtimeStatus'),
+      fan1Button: document.getElementById('fan1Button'),
+      fan2Button: document.getElementById('fan2Button'),
+      resetButton: document.getElementById('resetButton')
+    };
+
+    const state = {
+      temperature: null,
+      humidity: null,
+      fan1: false,
+      fan2: false,
+      autoMode: true
+    };
+
+    function render() {
+      elements.temperature.textContent = state.temperature === null ? '-- °C' : `${state.temperature.toFixed(1)} °C`;
+      elements.humidity.textContent = state.humidity === null ? '-- %' : `${state.humidity.toFixed(0)} %`;
+      elements.fan1.textContent = state.fan1 ? 'ON' : 'OFF';
+      elements.fan2.textContent = state.fan2 ? 'ON' : 'OFF';
+      elements.fan1Button.textContent = state.fan1 ? 'Turn Fan 1 Off' : 'Turn Fan 1 On';
+      elements.fan2Button.textContent = state.fan2 ? 'Turn Fan 2 Off' : 'Turn Fan 2 On';
+      elements.realtimeStatus.textContent = state.autoMode ? 'Auto mode is active' : 'Manual fan settings are active';
+    }
+
+    async function writeState(update) {
+      try {
+        await setDoc(farmRef, update, { merge: true });
+        elements.firebaseStatus.textContent = 'Saved state to Firebase';
+      } catch (error) {
+        elements.firebaseStatus.textContent = `Firebase error: ${error.message}`;
+        console.error(error);
+      }
+    }
+
+    elements.fan1Button.addEventListener('click', async () => {
+      state.fan1 = !state.fan1;
+      state.autoMode = false;
+      await writeState({ fan1: state.fan1, autoMode: state.autoMode });
+      render();
+    });
+
+    elements.fan2Button.addEventListener('click', async () => {
+      state.fan2 = !state.fan2;
+      state.autoMode = false;
+      await writeState({ fan2: state.fan2, autoMode: state.autoMode });
+      render();
+    });
+
+    elements.resetButton.addEventListener('click', async () => {
+      state.autoMode = true;
+      await writeState({ autoMode: true });
+      render();
+    });
+
+    onSnapshot(farmRef, (snapshot) => {
+      if (!snapshot.exists()) {
+        elements.firebaseStatus.textContent = 'Firebase document not found yet. It will be created automatically when you press a button.';
+        return;
+      }
+
+      const data = snapshot.data();
+      state.temperature = typeof data.temperature === 'number' ? data.temperature : state.temperature;
+      state.humidity = typeof data.humidity === 'number' ? data.humidity : state.humidity;
+      state.fan1 = typeof data.fan1 === 'boolean' ? data.fan1 : state.fan1;
+      state.fan2 = typeof data.fan2 === 'boolean' ? data.fan2 : state.fan2;
+      state.autoMode = data.autoMode !== false;
+      elements.firebaseStatus.textContent = 'Connected to Firebase';
+      render();
+    }, (error) => {
+      elements.firebaseStatus.textContent = `Realtime error: ${error.message}`;
+      console.error(error);
+    });
+
+    render();
+  </script>
+</body>
+</html>
