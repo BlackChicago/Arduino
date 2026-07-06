@@ -667,11 +667,12 @@
 
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
-    import { getFirestore, doc, onSnapshot, setDoc } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
+    import { getDatabase, ref, onValue, update as dbUpdate } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js';
 
     const firebaseConfig = {
       apiKey: "AIzaSyD1PlP0MZ_a4BdD8pHFuD1ThEH6suuoClg",
       authDomain: "smartfarm2-eaac6.firebaseapp.com",
+      databaseURL: "https://smartfarm2-eaac6-default-rtdb.firebaseio.com",
       projectId: "smartfarm2-eaac6",
       storageBucket: "smartfarm2-eaac6.firebasestorage.app",
       messagingSenderId: "755839822569",
@@ -680,8 +681,8 @@
     };
 
     const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const farmRef = doc(db, 'smart-farm', 'current');
+    const db = getDatabase(app);
+    const farmRef = ref(db, 'smart-farm/current');
 
     const DEFAULT_TEMP_THRESHOLD = 28;
     const HYSTERESIS = 1.5;
@@ -755,7 +756,7 @@
 
     async function writeState(update) {
       try {
-        await setDoc(farmRef, update, { merge: true });
+        await dbUpdate(farmRef, update);
         state.connected = true;
       } catch (error) {
         state.connected = false;
@@ -850,7 +851,7 @@
       // header
       el.clock.textContent = nowLabel();
       el.statusDot.style.background = state.connected ? 'var(--accent)' : '#e5645b';
-      el.statusLabel.textContent = state.connected ? 'FIRESTORE · ONLINE' : 'FIRESTORE · OFFLINE';
+      el.statusLabel.textContent = state.connected ? 'RTDB · ONLINE' : 'RTDB · OFFLINE';
 
       if (!isEditingThreshold) el.tempThresholdInput.value = state.tempThreshold;
 
@@ -945,10 +946,10 @@
       });
     }
 
-    onSnapshot(farmRef, (snapshot) => {
+    onValue(farmRef, (snapshot) => {
       state.connected = true;
       if (snapshot.exists()) {
-        const data = snapshot.data();
+        const data = snapshot.val();
         state.temperature = typeof data.temperature === 'number' ? data.temperature : state.temperature;
         state.humidity = typeof data.humidity === 'number' ? data.humidity : state.humidity;
         state.fan1 = typeof data.fan1 === 'boolean' ? data.fan1 : state.fan1;
